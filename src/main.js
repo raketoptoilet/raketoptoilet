@@ -115,13 +115,40 @@ async function loadProfile() {
       return;
     }
 
-    const { data: profile, error } = await supabase
+    let { data: profile, error } = await supabase
       .from('users')
       .select('*')
       .eq('id', user.id)
       .single();
 
-    if (error) throw new Error('Fout bij het laden van profiel: ' + error.message);
+    if (error) {
+      if (error.message.includes('JSON object requested, multiple (or no) rows returned')) {
+        // No profile exists, create one
+        const { error: insertError } = await supabase
+          .from('users')
+          .insert({
+            id: user.id,
+            email: user.email,
+            username: user.user_metadata.username || split_part(user.email, '@', 1),
+            name: user.user_metadata.name || 'Gebruiker',
+          });
+
+        if (insertError) throw new Error('Fout bij het aanmaken van profiel: ' + insertError.message);
+
+        // Fetch the profile again after creating it
+        const { data: newProfile, error: fetchError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (fetchError) throw new Error('Fout bij het laden van profiel: ' + fetchError.message);
+
+        profile = newProfile;
+      } else {
+        throw new Error('Fout bij het laden van profiel: ' + error.message);
+      }
+    }
 
     document.getElementById('profile-name').textContent = profile.name;
     document.getElementById('profile-email').textContent = profile.email;
