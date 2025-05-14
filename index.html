@@ -13,6 +13,9 @@
   <nav class="p-4 bg-blue-800">
     <ul class="flex space-x-4 justify-center">
       <li><button id="home-btn" class="text-lg">Home</button></li>
+      <li id="profile-nav" class="hidden">
+        <button id="profile-btn" class="text-lg">Profiel</button>
+      </li>
       <li id="auth-nav">
         <button id="login-nav-btn" class="text-lg">Inloggen</button>
       </li>
@@ -26,6 +29,7 @@
     <div id="login" class="page hidden">
       <h2 class="text-3xl mb-4 text-center">Inloggen/Registreren</h2>
       <div id="register-form" class="max-w-md mx-auto">
+        <div id="register-loading" class="hidden text-center mb-2">Laden...</div>
         <input type="text" id="name" placeholder="Naam" class="w-full p-2 mb-2 border rounded text-black" />
         <input type="email" id="email" placeholder="E-mail" class="w-full p-2 mb-2 border rounded text-black" />
         <input type="text" id="username" placeholder="Gebruikersnaam" class="w-full p-2 mb-2 border rounded text-black" />
@@ -33,9 +37,26 @@
         <button id="register-btn" class="w-full p-2 bg-red-600 rounded">Registreren</button>
       </div>
       <div id="login-form" class="max-w-md mx-auto mt-4">
+        <div id="login-loading" class="hidden text-center mb-2">Laden...</div>
         <input type="email" id="login-email" placeholder="E-mail" class="w-full p-2 mb-2 border rounded text-black" />
         <input type="password" id="login-password" placeholder="Wachtwoord" class="w-full p-2 mb-2 border rounded text-black" />
         <button id="login-btn" class="w-full p-2 bg-red-600 rounded">Inloggen</button>
+      </div>
+    </div>
+    <div id="profile" class="page hidden">
+      <h2 class="text-3xl mb-4 text-center">Mijn Profiel</h2>
+      <div id="profile-loading" class="hidden text-center mb-2">Laden...</div>
+      <div id="profile-details" class="max-w-md mx-auto">
+        <p><strong>Naam:</strong> <span id="profile-name"></span></p>
+        <p><strong>E-mail:</strong> <span id="profile-email"></span></p>
+        <p><strong>Gebruikersnaam:</strong> <span id="profile-username"></span></p>
+        <button id="edit-profile-btn" class="mt-4 p-2 bg-blue-600 rounded">Bewerken</button>
+      </div>
+      <div id="edit-profile-form" class="max-w-md mx-auto mt-4 hidden">
+        <div id="edit-profile-loading" class="hidden text-center mb-2">Laden...</div>
+        <input type="text" id="edit-name" placeholder="Naam" class="w-full p-2 mb-2 border rounded text-black" />
+        <input type="text" id="edit-username" placeholder="Gebruikersnaam" class="w-full p-2 mb-2 border rounded text-black" />
+        <button id="save-profile-btn" class="w-full p-2 bg-green-600 rounded">Opslaan</button>
       </div>
     </div>
   </main>

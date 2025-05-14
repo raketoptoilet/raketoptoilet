@@ -6,10 +6,24 @@ function showPage(pageId) {
   console.log('Showing page:', pageId);
   document.querySelectorAll('.page').forEach(page => page.classList.add('hidden'));
   document.getElementById(pageId).classList.remove('hidden');
+
+  if (pageId === 'profile') {
+    loadProfile();
+  }
+}
+
+function showLoading(elementId, show) {
+  const loadingElement = document.getElementById(elementId);
+  if (show) {
+    loadingElement.classList.remove('hidden');
+  } else {
+    loadingElement.classList.add('hidden');
+  }
 }
 
 async function register() {
   try {
+    showLoading('register-loading', true);
     console.log('Register button clicked');
     const name = document.getElementById('name').value;
     const email = document.getElementById('email').value;
@@ -30,28 +44,20 @@ async function register() {
     if (error) throw new Error('Fout bij registratie: ' + error.message);
 
     if (data.user) {
-      const { error: profileError } = await supabase
-        .from('users')
-        .insert({
-          id: data.user.id,
-          email: data.user.email,
-          username,
-          name,
-        });
-
-      if (profileError) throw new Error('Fout bij het aanmaken van profiel: ' + profileError.message);
-
       alert('Registratie succesvol! Controleer je e-mail om je account te bevestigen.');
       console.log('Registered user:', data.user);
     }
   } catch (error) {
     console.error(error);
     alert(error.message);
+  } finally {
+    showLoading('register-loading', false);
   }
 }
 
 async function login() {
   try {
+    showLoading('login-loading', true);
     console.log('Login button clicked');
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
@@ -71,13 +77,15 @@ async function login() {
     if (data.user) {
       alert('Inloggen succesvol! Welkom, ' + (data.user.user_metadata.name || 'gebruiker'));
       updateAuthNav(true);
-      showPage('home');
+      showPage('profile');
     } else {
       alert('Inloggen mislukt: Geen gebruikersdata ontvangen.');
     }
   } catch (error) {
     console.error(error);
     alert(error.message);
+  } finally {
+    showLoading('login-loading', false);
   }
 }
 
@@ -97,14 +105,110 @@ async function logout() {
   }
 }
 
+async function loadProfile() {
+  try {
+    showLoading('profile-loading', true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      alert('Je bent niet ingelogd.');
+      showPage('login');
+      return;
+    }
+
+    const { data: profile, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (error) throw new Error('Fout bij het laden van profiel: ' + error.message);
+
+    document.getElementById('profile-name').textContent = profile.name;
+    document.getElementById('profile-email').textContent = profile.email;
+    document.getElementById('profile-username').textContent = profile.username;
+
+    document.getElementById('edit-name').value = profile.name;
+    document.getElementById('edit-username').value = profile.username;
+  } catch (error) {
+    console.error(error);
+    alert(error.message);
+  } finally {
+    showLoading('profile-loading', false);
+  }
+}
+
+async function saveProfile() {
+  try {
+    showLoading('edit-profile-loading', true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      alert('Je bent niet ingelogd.');
+      showPage('login');
+      return;
+    }
+
+    const newName = document.getElementById('edit-name').value;
+    const newUsername = document.getElementById('edit-username').value;
+
+    if (!newName || !newUsername) {
+      alert('Vul alle velden in!');
+      return;
+    }
+
+    const { data: existingUser, error: checkError } = await supabase
+      .from('users')
+      .select('username')
+      .eq('username', newUsername)
+      .neq('id', user.id)
+      .single();
+
+    if (existingUser) {
+      throw new Error('Gebruikersnaam is al in gebruik.');
+    }
+    if (checkError && checkError.code !== 'PGRST116') {
+      throw new Error('Fout bij het controleren van gebruikersnaam: ' + checkError.message);
+    }
+
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({
+        name: newName,
+        username: newUsername,
+      })
+      .eq('id', user.id);
+
+    if (updateError) throw new Error('Fout bij het bijwerken van profiel: ' + updateError.message);
+
+    const { error: authError } = await supabase.auth.updateUser({
+      data: { name: newName, username: newUsername },
+    });
+
+    if (authError) throw new Error('Fout bij het bijwerken van gebruikersgegevens: ' + authError.message);
+
+    alert('Profiel bijgewerkt!');
+    document.getElementById('edit-profile-form').classList.add('hidden');
+    document.getElementById('profile-details').classList.remove('hidden');
+    loadProfile();
+  } catch (error) {
+    console.error(error);
+    alert(error.message);
+  } finally {
+    showLoading('edit-profile-loading', false);
+  }
+}
+
 function updateAuthNav(isLoggedIn) {
   console.log('Updating auth nav, logged in:', isLoggedIn);
   const authNav = document.getElementById('auth-nav');
+  const profileNav = document.getElementById('profile-nav');
   if (isLoggedIn) {
     authNav.innerHTML = `<button id="logout-btn" class="text-lg">Uitloggen</button>`;
+    profileNav.classList.remove('hidden');
     document.getElementById('logout-btn').addEventListener('click', logout);
+    document.getElementById('profile-btn').addEventListener('click', () => showPage('profile'));
   } else {
     authNav.innerHTML = `<button id="login-nav-btn" class="text-lg">Inloggen</button>`;
+    profileNav.classList.add('hidden');
     document.getElementById('login-nav-btn').addEventListener('click', () => showPage('login'));
   }
 }
@@ -125,14 +229,15 @@ async function checkSession() {
   }
 }
 
-// Add event listeners for navigation buttons
 document.getElementById('home-btn').addEventListener('click', () => showPage('home'));
 document.getElementById('login-nav-btn').addEventListener('click', () => showPage('login'));
-
-// Add event listeners for form buttons
 document.getElementById('register-btn').addEventListener('click', register);
 document.getElementById('login-btn').addEventListener('click', login);
+document.getElementById('edit-profile-btn').addEventListener('click', () => {
+  document.getElementById('profile-details').classList.add('hidden');
+  document.getElementById('edit-profile-form').classList.remove('hidden');
+});
+document.getElementById('save-profile-btn').addEventListener('click', saveProfile);
 
-// Initialize the app
 checkSession();
 showPage('home');
