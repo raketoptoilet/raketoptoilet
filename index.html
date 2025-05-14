@@ -5,9 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Raket op Toilet</title>
   <link rel="stylesheet" href="/src/style.css" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#6200ea" />
+  <link rel="apple-touch-icon" href="/icon-192x192.png" />
 </head>
-<body>
-  <div class="p-4 bg-blue-900 text-white font-comic text-2xl">Hallo, Raket op Toilet!</div>
+<body class="min-h-screen bg-blue-900 text-white font-comic">
+  <nav class="p-4 bg-blue-800">
+    <ul class="flex space-x-4 justify-center">
+      <li><button id="home-btn" class="text-lg">Home</button></li>
+      <li id="auth-nav">
+        <button id="login-nav-btn" class="text-lg">Inloggen</button>
+      </li>
+    </ul>
+  </nav>
+  <main class="p-4">
+    <div id="home" class="page text-center">
+      <h1 class="text-4xl mb-4">Raket op Toilet</h1>
+      <p class="text-xl">Welkom bij het avontuur van zindelijkheidstraining!</p>
+    </div>
+    <div id="login" class="page hidden">
+      <h2 class="text-3xl mb-4 text-center">Inloggen/Registreren</h2>
+      <div id="register-form" class="max-w-md mx-auto">
+        <input type="text" id="name" placeholder="Naam" class="w-full p-2 mb-2 border rounded text-black" />
+        <input type="email" id="email" placeholder="E-mail" class="w-full p-2 mb-2 border rounded text-black" />
+        <input type="text" id="username" placeholder="Gebruikersnaam" class="w-full p-2 mb-2 border rounded text-black" />
+        <input type="password" id="password" placeholder="Wachtwoord" class="w-full p-2 mb-2 border rounded text-black" />
+        <button id="register-btn" class="w-full p-2 bg-red-600 rounded">Registreren</button>
+      </div>
+      <div id="login-form" class="max-w-md mx-auto mt-4">
+        <input type="email" id="login-email" placeholder="E-mail" class="w-full p-2 mb-2 border rounded text-black" />
+        <input type="password" id="login-password" placeholder="Wachtwoord" class="w-full p-2 mb-2 border rounded text-black" />
+        <button id="login-btn" class="w-full p-2 bg-red-600 rounded">Inloggen</button>
+      </div>
+    </div>
+  </main>
   <script type="module" src="/src/main.js"></script>
 </body>
 </html>
