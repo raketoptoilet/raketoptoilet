@@ -1,0 +1,22 @@
+{
+  "rewrites": [
+    {
+      "source": "/admin",
+      "destination": "/backend/server.js"
+    },
+    {
+      "source": "/admin/(.*)",
+      "destination": "/backend/server.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "functions": {
+    "backend/server.js": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  }
+}
